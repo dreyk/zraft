@@ -1,0 +1,74 @@
+#!/bin/sh
+# -*- tab-width:4;indent-tabs-mode:nil -*-
+# ex: ts=4 sw=4 et
+
+# Pull environment for this install
+. "{{runner_base_dir}}/lib/env.sh"
+
+# Make sure the user running this script is the owner and/or su to that user
+check_user "$@"
+ES=$?
+if [ "$ES" -ne 0 ]; then
+    exit $ES
+fi
+
+# Keep track of where script was invoked
+ORIGINAL_DIR=$(pwd)
+
+# Make sure CWD is set to runner run dir
+cd $RUNNER_BASE_DIR
+
+# Identify the script name
+SCRIPT=`basename $0`
+
+usage() {
+    echo "Usage: $SCRIPT { cluster | join | leave | status | create | remove }"
+}
+
+cluster_admin()
+{
+    case "$1" in
+        join)
+            if [ $# -ne 3 ]; then
+                echo "Usage: $SCRIPT cluster join <peer> <new-peer>"
+                exit 1
+            fi
+            node_up_check
+            $NODETOOL rpc zraft_cmd join "$2" "$3"
+            ;;
+        leave)
+            if [ $# -ne 2 ]; then
+                echo "Usage: $SCRIPT cluster leave <peer>"
+                exit 1
+            fi
+            node_up_check
+            $NODETOOL rpc zraft_cmd leave "$2"
+            ;;
+        *)
+            echo "\
+Usage: $SCRIPT cluster <command>
+
+The following commands stage changes to cluster membership.
+
+   join <peer> <new-peer>          Join new-peer to the cluster containing peer
+   leave <peer>                    Have this peer leave the cluster and shutdown
+
+Status and information commands:
+   status                          Display a concise summary of node cluster and it's membership
+   status <peer>                  Display a concise summary of peer
+"
+    esac
+}
+
+
+# Check the first argument for instructions
+case "$1" in
+    cluster)
+        shift
+        cluster_admin "$@"
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac
