@@ -11,3 +11,4 @@ rel/example_project
 deps
 .idea
 zraft.iml
+rel/zraft
