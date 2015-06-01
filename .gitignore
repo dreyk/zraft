@@ -12,3 +12,5 @@ deps
 .idea
 zraft.iml
 rel/zraft
+test/data
+test/log
