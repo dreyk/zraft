@@ -1,6 +1,6 @@
 # zraft
 
-It's standalone RAFT server used for testing (zraft_lib)[https://github.com/dreyk/zraft_lib]
+It's standalone RAFT server used for testing [zraft_lib](https://github.com/dreyk/zraft_lib).
 
 ## Usage
 
