@@ -16,6 +16,7 @@
     stop/1]).
 
 start(_StartType, _StartArgs) ->
+    timer:sleep(1000),
     case file:list_dir("data/raft") of
         {ok,L} when length(L)>0->
             application:set_env(zraft_lib,election_timeout,2000),
