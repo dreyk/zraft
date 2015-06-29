@@ -50,7 +50,7 @@ fill(Me,Ref,Form1,To1)->
 
 session_write(I)->
     Idx = I rem 256 + 1,
-    To = list_to_atom("dlog-"++integer_to_list(Idx)),
+    To = list_to_atom("sdlog-"++integer_to_list(Idx)),
     ok = zraft_session:write(To,{add,{I,[{zont_time_util:system_time(millisec),[{1,1}]}]}},10000).
 
 %% @doc init backend FSM
