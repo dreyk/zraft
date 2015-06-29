@@ -44,4 +44,4 @@ create_raft(I,[F|T])->
         Else->
             lager:error("Can't crate raft ~p ~p",[I,Else])
     end,
-    T++F.
+    T++[F].

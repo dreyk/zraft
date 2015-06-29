@@ -48,4 +48,4 @@ create_raft()->
 create_raft(I,[F|T])->
     Name = list_to_atom("dlog-"++integer_to_list(I)),
     Peers = [{Name,Node}||Node<-T],
-    {Name,Peers,T++F}.
+    {Name,Peers,T++[F]}.
