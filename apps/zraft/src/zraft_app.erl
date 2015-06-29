@@ -21,9 +21,13 @@ start(_StartType, _StartArgs) ->
         {ok,L} when length(L)>0->
             application:set_env(zraft_lib,election_timeout,2000),
             zraft_app_sup:start_link();
-        _->
+        _ when node()=:='zraft@10.1.116.51'->
             application:set_env(zraft_lib,election_timeout,200),
             create_raft(),
+            P = spawn_link(fun()->receive O->O end end),
+            {ok,P};
+        _->
+            application:set_env(zraft_lib,election_timeout,200),
             P = spawn_link(fun()->receive O->O end end),
             {ok,P}
     end.
