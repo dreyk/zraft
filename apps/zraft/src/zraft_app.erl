@@ -16,17 +16,19 @@
     stop/1]).
 
 start(_StartType, _StartArgs) ->
-    timer:sleep(1000),
     case file:list_dir("data/raft") of
         {ok,L} when length(L)>0->
+            timer:sleep(1000),
             application:set_env(zraft_lib,election_timeout,2000),
             zraft_app_sup:start_link();
         _ when node()=:='zraft@10.1.116.51'->
+            timer:sleep(1000),
             application:set_env(zraft_lib,election_timeout,200),
             create_raft(),
             P = spawn_link(fun()->receive O->O end end),
             {ok,P};
         _->
+            timer:sleep(1000),
             application:set_env(zraft_lib,election_timeout,200),
             P = spawn_link(fun()->receive O->O end end),
             {ok,P}
