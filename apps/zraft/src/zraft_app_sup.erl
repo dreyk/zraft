@@ -46,6 +46,7 @@ create_raft()->
     Sessions.
 
 create_raft(I,[F|T])->
+    NameP = list_to_atom("dlog-"++integer_to_list(I)),
     Name = list_to_atom("sdlog-"++integer_to_list(I)),
-    Peers = [{Name,Node}||Node<-T],
+    Peers = [{NameP,Node}||Node<-T],
     {Name,Peers,T++[F]}.
