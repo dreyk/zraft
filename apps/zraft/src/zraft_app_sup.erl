@@ -36,7 +36,7 @@ create_raft()->
     Shutdown = 2000,
     Type = worker,
     Nodes = ['zraft@10.1.116.52','zraft@10.1.116.53','zraft@10.1.116.54'],
-    {Sessions,_}=lists:foldl(fun(I,Acc)->
+    Sessions=lists:foldl(fun(I,Acc)->
         {Name,Peers}=create_raft(I,Nodes),
         StartSpec = {zraft_session,start_link,[Name,Peers,60000]},
         [{Name,StartSpec,Restart, Shutdown, Type, [zraft_session]}|Acc]
