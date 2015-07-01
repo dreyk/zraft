@@ -20,7 +20,7 @@
     snapshot_done/1,
     snapshot_failed/2,
     install_snapshot/2,
-    expire_session/2,fill_async/1]).
+    expire_session/2,fill_async/1,session_write/2]).
 
 -record(state, {tab, next = 1}).
 

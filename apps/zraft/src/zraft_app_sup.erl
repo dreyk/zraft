@@ -42,7 +42,7 @@ create_raft()->
         {SupAcc1,Acc1}
     end,
         {[],['zraft@10.1.116.51','zraft@10.1.116.52','zraft@10.1.116.53','zraft@10.1.116.54']},
-        lists:seq(1,256)),
+        lists:seq(1,1)),
     Sessions.
 
 create_raft(I,[F|T])->
