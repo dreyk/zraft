@@ -26,7 +26,7 @@
 
 
 fill_async(N)->
-    T = ets:new(stat,[public,[ordered_set, {write_concurrency,true}, {read_concurrency, true}]]),
+    T = ets:new(stat,[public,ordered_set, {write_concurrency,true}, {read_concurrency, true}]),
     ets:insert(T,{c,0}),
     lists:foldl(fun(I,Acc)->
         spawn_link(fun()->

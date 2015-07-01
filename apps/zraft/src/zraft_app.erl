@@ -17,7 +17,7 @@
 
 start(_StartType, _StartArgs) ->
     case file:list_dir("data/raft") of
-        {ok,L} when length(L)>0->
+        {ok,L} when is_list(L)->
             timer:sleep(1000),
             application:set_env(zraft_lib,election_timeout,2000),
             zraft_app_sup:start_link();
