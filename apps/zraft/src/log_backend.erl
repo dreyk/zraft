@@ -20,20 +20,16 @@
     snapshot_done/1,
     snapshot_failed/2,
     install_snapshot/2,
-    expire_session/2,fill_aync/3]).
+    expire_session/2,fill_async/1]).
 
 -record(state, {tab, next = 1}).
 
 
-fill_aync(Form,To,N)->
-    Step = round((To-Form+1)/N),
+fill_async(N)->
     Ref = make_ref(),
-    Me = self(),
     lists:foldl(fun(I,Acc)->
-        Form1 = Form+(I-1)*Step,
-        To1 = Form+I*Step,
         spawn_link(fun()->
-            fill(Me,Ref,Form1,To1) end),
+            fill(I,1) end),
         Acc+1 end,0,lists:seq(1,N)),
     clr(Ref,N,0).
 clr(_Ref,0,Acc)->
@@ -43,15 +39,14 @@ clr(Ref,N,Acc)->
         {Ref,Count}->
             clr(Ref,N-1,Acc+Count)
     end.
-fill(Me,Ref,Form1,To1)->
-    Count = To1-Form1+1,
-    [session_write(I)||I<-lists:seq(Form1,To1)],
-    Me ! {Ref,Count}.
+fill(N,C)->
+    session_write(N,C),
+    fill(N,C+1).
 
-session_write(I)->
-    Idx = I rem 256 + 1,
+session_write(N,C)->
+    Idx = 1,
     To = list_to_atom("sdlog-"++integer_to_list(Idx)),
-    ok = zraft_session:write(To,{add,{I,[{zraft_util:now_millisec(),[{1,1}]}]}},10000).
+    ok = zraft_session:write(To,{add,{{N,C},[{zraft_util:now_millisec(),[{1,1}]}]}},10000).
 
 %% @doc init backend FSM
 init(_) ->

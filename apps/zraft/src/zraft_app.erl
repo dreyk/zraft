@@ -40,7 +40,7 @@ stop(_State) ->
 create_raft()->
     lists:foldl(fun(I,Acc)->
         create_raft(I,Acc) end,['zraft@10.1.116.51','zraft@10.1.116.52','zraft@10.1.116.53','zraft@10.1.116.54'],
-    lists:seq(1,256)).
+    lists:seq(1,1)).
 
 create_raft(I,[F|T])->
     Name = list_to_atom("dlog-"++integer_to_list(I)),
