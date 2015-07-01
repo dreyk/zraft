@@ -35,18 +35,18 @@ create_raft()->
     Restart = permanent,
     Shutdown = 2000,
     Type = worker,
-    {Sessions,_}=lists:foldl(fun(I,{SupAcc,Acc})->
-        {Name,Peers,Acc1}=create_raft(I,Acc),
+    Nodes = ['zraft@10.1.116.52','zraft@10.1.116.53','zraft@10.1.116.54'],
+    {Sessions,_}=lists:foldl(fun(I,Acc)->
+        {Name,Peers}=create_raft(I,Nodes),
         StartSpec = {zraft_session,start_link,[Name,Peers,60000]},
-        SupAcc1 = [{Name,StartSpec,Restart, Shutdown, Type, [zraft_session]}|SupAcc],
-        {SupAcc1,Acc1}
+        [{Name,StartSpec,Restart, Shutdown, Type, [zraft_session]}|Acc]
     end,
-        {[],['zraft@10.1.116.51','zraft@10.1.116.52','zraft@10.1.116.53','zraft@10.1.116.54']},
-        lists:seq(1,1)),
+        [],
+        lists:seq(1,256)),
     Sessions.
 
-create_raft(I,[F|T])->
-    NameP = list_to_atom("dlog-"++integer_to_list(I)),
+create_raft(I,T)->
+    NameP = list_to_atom("dlog-1"),
     Name = list_to_atom("sdlog-"++integer_to_list(I)),
     Peers = [{NameP,Node}||Node<-T],
-    {Name,Peers,T++[F]}.
+    {Name,Peers}.

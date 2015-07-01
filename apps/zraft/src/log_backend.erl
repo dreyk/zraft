@@ -49,7 +49,7 @@ fill(T,N,C)->
     fill(T,N,C+1).
 
 session_write(N,C)->
-    Idx = 1,
+    Idx = N rem 256 +1,
     To = list_to_atom("sdlog-"++integer_to_list(Idx)),
     ok = zraft_session:write(To,{add,{{N,C},[{zraft_util:now_millisec(),[{1,1}]}]}},10000).
 
