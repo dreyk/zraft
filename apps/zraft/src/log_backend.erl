@@ -26,22 +26,27 @@
 
 
 fill_async(N)->
-    Ref = make_ref(),
+    T = ets:new(stat,[public,[ordered_set, {write_concurrency,true}, {read_concurrency, true}]]),
+    ets:insert(T,{c,0}),
     lists:foldl(fun(I,Acc)->
         spawn_link(fun()->
-            fill(I,1) end),
+            fill(T,I,1) end),
         Acc+1 end,0,lists:seq(1,N)),
-    clr(Ref,N,0).
-clr(_Ref,0,Acc)->
-    Acc;
-clr(Ref,N,Acc)->
-    receive
-        {Ref,Count}->
-            clr(Ref,N-1,Acc+Count)
-    end.
-fill(N,C)->
+    stat(T).
+
+stat(T)->
+    true  = ets:update_element(T,c,{2,0}),
+    Start = os:timestamp(),
+    timer:sleep(10000),
+    [{_,Count}] = ets:lookup(T,c),
+    Delta = timer:now_diff(os:timestamp(),Start),
+    lager:info("********* ~p op/s.",[round(Count*1000000/Delta)]),
+    stat(T).
+
+fill(T,N,C)->
     session_write(N,C),
-    fill(N,C+1).
+    ets:update_counter(T,c,{2,1}),
+    fill(T,N,C+1).
 
 session_write(N,C)->
     Idx = 1,

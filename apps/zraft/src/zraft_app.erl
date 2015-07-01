@@ -22,6 +22,7 @@ start(_StartType, _StartArgs) ->
             application:set_env(zraft_lib,election_timeout,2000),
             zraft_app_sup:start_link();
         _ when node()=:='zraft@10.1.116.51'->
+            zraft_util:make_dir("data/raft"),
             timer:sleep(1000),
             application:set_env(zraft_lib,election_timeout,200),
             create_raft(),
