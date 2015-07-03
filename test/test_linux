@@ -1,1 +1,1 @@
-erl  -pa ../deps/*/ebin -config dev.config -args_file vm.args
+erl  -pa ../deps/*/ebin ../apps/zraft/ebin -config dev.config -args_file vm.args

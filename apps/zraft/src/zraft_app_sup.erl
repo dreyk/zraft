@@ -32,21 +32,26 @@ init([]) ->
 
 
 create_raft()->
+    Count = application:get_env(zraft,scount,1),
     Restart = permanent,
     Shutdown = 2000,
     Type = worker,
-    Nodes = ['zraft@10.1.116.52','zraft@10.1.116.53','zraft@10.1.116.54'],
+    [_|Nodes]= zraft_app:get_nodes(),
     Sessions=lists:foldl(fun(I,Acc)->
         {Name,Peers}=create_raft(I,Nodes),
         StartSpec = {zraft_session,start_link,[Name,Peers,60000]},
         [{Name,StartSpec,Restart, Shutdown, Type, [zraft_session]}|Acc]
     end,
         [],
-        lists:seq(1,256)),
+        lists:seq(1,Count)),
     Sessions.
 
 create_raft(I,T)->
-    NameP = list_to_atom("dlog-1"),
+    NameP = "dlog-1-",
     Name = list_to_atom("sdlog-"++integer_to_list(I)),
-    Peers = [{NameP,Node}||Node<-T],
+    {Peers,_}=lists:foldl(fun(Node,{Acc,In})->
+        {
+            [{list_to_atom(NameP++integer_to_list(In)),Node}|Acc],
+            In+1
+        } end,{[],1},T),
     {Name,Peers}.

@@ -20,17 +20,18 @@
     snapshot_done/1,
     snapshot_failed/2,
     install_snapshot/2,
-    expire_session/2,fill_async/1,session_write/2]).
+    expire_session/2,fill_async/1,session_write/3]).
 
 -record(state, {tab, next = 1}).
 
 
 fill_async(N)->
+    SCount = application:get_env(zraft,scount,1),
     T = ets:new(stat,[public,ordered_set, {write_concurrency,true}, {read_concurrency, true}]),
     ets:insert(T,{c,0}),
     lists:foldl(fun(I,Acc)->
         spawn_link(fun()->
-            fill(T,I,1) end),
+            fill(T,SCount,I,1) end),
         Acc+1 end,0,lists:seq(1,N)),
     stat(T).
 
@@ -43,13 +44,13 @@ stat(T)->
     lager:info("********* ~p op/s.",[round(Count*1000000/Delta)]),
     stat(T).
 
-fill(T,N,C)->
-    session_write(N,C),
+fill(T,SCount,N,C)->
+    session_write(SCount,N,C),
     ets:update_counter(T,c,{2,1}),
-    fill(T,N,C+1).
+    fill(T,SCount,N,C+1).
 
-session_write(N,C)->
-    Idx = N rem 256 +1,
+session_write(SCount,N,C)->
+    Idx = N rem SCount +1,
     To = list_to_atom("sdlog-"++integer_to_list(Idx)),
     ok = zraft_session:write(To,{add,{{N,C},[{zraft_util:now_millisec(),[{1,1}]}]}},10000).
 
