@@ -20,7 +20,7 @@
     snapshot_done/1,
     snapshot_failed/2,
     install_snapshot/2,
-    expire_session/2,fill_async/1,session_write/3]).
+    expire_session/2,fill_async/1,session_write/3,lfill_async/1]).
 
 -record(state, {tab, next = 1}).
 
@@ -32,6 +32,20 @@ fill_async(N)->
     lists:foldl(fun(I,Acc)->
         spawn_link(fun()->
             fill(T,SCount,I,1) end),
+        Acc+1 end,0,lists:seq(1,N)),
+    stat(T).
+
+lfill_async(N)->
+    [_|Nodes]= zraft_app:get_nodes(),
+    Peers = create_peers(Nodes),
+    ETime = zraft_consensus:get_election_timeout(),
+    Session = zraft_client:light_session(Peers, ETime * 4, ETime*2),
+    SCount = application:get_env(zraft,scount,1),
+    T = ets:new(stat,[public,ordered_set, {write_concurrency,true}, {read_concurrency, true}]),
+    ets:insert(T,{c,0}),
+    lists:foldl(fun(I,Acc)->
+        spawn_link(fun()->
+            fill(Session,T,SCount,I,1) end),
         Acc+1 end,0,lists:seq(1,N)),
     stat(T).
 
@@ -49,10 +63,29 @@ fill(T,SCount,N,C)->
     ets:update_counter(T,c,{2,1}),
     fill(T,SCount,N,C+1).
 
+fill(Session,T,SCount,N,C)->
+    Session1 = session_write(Session,SCount,N,C),
+    ets:update_counter(T,c,{2,1}),
+    fill(Session1,T,SCount,N,C+1).
+
 session_write(SCount,N,C)->
     Idx = N rem SCount +1,
     To = list_to_atom("sdlog-"++integer_to_list(Idx)),
     ok = zraft_session:write(To,{add,{{N,C},[{zraft_util:now_millisec(),[{1,1}]}]}},10000).
+
+session_write(Session,_SCount,N,C)->
+    {ok,Session1} = zraft_client:write(Session,{add,{{N,C},[{zraft_util:now_millisec(),[{1,1}]}]}},10000),
+    Session1.
+
+create_peers(T)->
+    NameP = "dlog-1-",
+    {Peers,_}=lists:foldl(fun(Node,{Acc,In})->
+        {
+            [{list_to_atom(NameP++integer_to_list(In)),Node}|Acc],
+            In+1
+        } end,{[],1},T),
+    Peers.
+
 
 %% @doc init backend FSM
 init(_) ->
